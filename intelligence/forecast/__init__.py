@@ -1,0 +1,1 @@
+from .forecast import generate_forecast

@@ -1,0 +1,9 @@
+{
+    "model": "LSTM",
+    "target": "Yield_kg_per_ha",
+    "sequence_length": 5,
+    "test_samples": 9055,
+    "mae_kg_per_ha": 233.87346219198952,
+    "rmse_kg_per_ha": 783.0356066145321,
+    "r2": 0.4882400784505275
+}

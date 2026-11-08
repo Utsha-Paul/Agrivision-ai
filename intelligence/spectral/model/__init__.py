@@ -1,0 +1,3 @@
+"""
+HyperLeaf spectral model package.
+"""

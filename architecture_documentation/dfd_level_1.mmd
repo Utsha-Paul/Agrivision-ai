@@ -1,0 +1,84 @@
+flowchart TB
+    %% =========================================================================
+    %% AGRIVISION AI — DATA FLOW DIAGRAM LEVEL 1 (DETAILED DECOMPOSITION)
+    %% =========================================================================
+
+    %% EXTERNAL ENTITIES
+    User["Farmer / Agronomist<br/>(Client UI)"]
+    Gemini["Google Gemini API<br/>(External Service)"]
+
+    %% DATA STORES
+    subgraph Data_Stores ["Data Stores"]
+        D1[("D1: User & OTP Store<br/>(In-Memory USERS_DB / OTP_STORE)")]
+        D2[("D2: Client LocalStorage<br/>(agrivision_user, API Key)")]
+        D3[("D3: Web Uploads Store<br/>(outputs/web_uploads/)")]
+        D4[("D4: Spectral Outputs Store<br/>(outputs/spectral/)")]
+        D5[("D5: Model Weights & Scalers<br/>(models/ directory)")]
+    end
+
+    %% PROCESSES
+    subgraph Core_Processes ["Level 1 Functional Processes"]
+        P1(( "1.0<br/>Authenticate &<br/>Manage Profile" ))
+        P2(( "2.0<br/>Ingest & Save<br/>Leaf Image" ))
+        P3(( "3.0<br/>Validate Resolution<br/>& Green Ratio" ))
+        P4(( "4.0<br/>Predict Disease<br/>(EfficientNet)" ))
+        P5(( "5.0<br/>Analyze Stress &<br/>Generate Overlays" ))
+        P6(( "6.0<br/>Predict Harvest Yield<br/>(Tabular MLP)" ))
+        P7(( "7.0<br/>Calculate Health Score<br/>& Composite Risk" ))
+        P8(( "8.0<br/>Synthesize Advisory<br/>& 14-Day Trend" ))
+        P9(( "9.0<br/>Execute LSTM Recurrent<br/>Trend Forecast" ))
+        P10(( "10.0<br/>Synthesize GAN<br/>Diagnostic Dossier" ))
+    end
+
+    %% ---------------- DATA FLOWS ----------------
+
+    %% Flow 1: Authentication
+    User -->|"Credentials (Google / Email / Phone)"| P1
+    P1 <-->|"Read / Write User Profile & OTP"| D1
+    P1 -->|"Session Token & User PFP Profile"| User
+    User <-->|"Sync Profile & PFP to Local Cache"| D2
+
+    %% Flow 2 & 3: Upload and Validation
+    User -->|"Leaf Image Binary + Agronomic Form Data"| P2
+    P2 -->|"Write Raw Leaf Image (UUID.jpg)"| D3
+    D3 -.->|"Read Stored File Path"| P3
+    P3 -->|"Vegetation Ratio < 1% Fail"| User
+    P3 -->|"Validated Leaf Image Path"| P4
+    P3 -->|"Validated Leaf Image Path"| P5
+
+    %% Flow 4: Disease Model
+    D5 -.->|"Load disease_efficientnet.keras & class_names.json"| P4
+    P4 -->|"Disease Name, Confidence %, Botanical Crop"| P7
+
+    %% Flow 5: Spectral Analysis
+    P5 -->|"ExG & NDI Heatmap / Morphological Overlay JPEGs"| D4
+    P5 -->|"Spectral Stress Score (0-100)"| P7
+    D4 -.->|"Static Image URLs (/outputs/spectral/*)"| User
+
+    %% Flow 6: Yield Prediction
+    User -.->|"Soil NPK, pH, Rainfall, Temp, Irrigation, Season"| P6
+    D5 -.->|"Load crop_yield_mlp.keras & preprocessor.pkl"| P6
+    P6 -->|"Predicted Yield (t/ha) & Yield Category"| P7
+
+    %% Flow 7: Health & Risk Scoring
+    User -.->|"Pest Index, Ambient Humidity, Declared Crop"| P7
+    P7 -->|"Health Score (0-100), Status, Risk Score & Level"| P8
+    P7 -->|"Diagnostic Baseline Snapshot"| User
+
+    %% Flow 8: Recommendations & Forward Forecast
+    P8 -->|"Targeted Chemical / Biological Action Protocols"| User
+    P8 -->|"Baseline 14-Day Forward Trajectory"| User
+
+    %% Flow 9: LSTM Temporal Sequence Forecasting
+    User -->|"Request Recurrent Forecast (Horizon, Nitrogen Index)"| P9
+    D2 -.->|"Optional Gemini API Key"| P9
+    P9 <-->|"HTTPS Prompt Vector & Recurrent Projections"| Gemini
+    D5 -.->|"Fallback: Native LSTM Weights (crop_yield_lstm.keras)"| P9
+    P9 -->|"7 & 14-Day Projections, Velocity, Confidence Bands, Anomalies"| User
+
+    %% Flow 10: Generative Adversarial (GAN) Report Synthesis
+    User -->|"Request Comprehensive Dossier Generation"| P10
+    P7 -.->|"Conditioning Diagnostics Vector"| P10
+    P1 -.->|"Agronomist Identity & Signature Avatar"| P10
+    P10 -->|"4-Stage Recovery Timeline, Biochemical Manifold, Discriminator Score"| User
+

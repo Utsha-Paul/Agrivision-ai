@@ -1,0 +1,38 @@
+flowchart LR
+    %% =========================================================================
+    %% AGRIVISION AI — DATA FLOW DIAGRAM LEVEL 0 (CONTEXT DIAGRAM)
+    %% =========================================================================
+
+    %% EXTERNAL ENTITIES
+    User["Farmer / Agronomist<br/>(Client Device / Web Browser)"]
+    Filesystem["Local Filesystem Storage<br/>(Models, Scalers, Uploads, Overlays)"]
+    GeminiService["Google Gemini API<br/>(External Temporal Sequence Service)"]
+
+    %% CENTRAL PROCESS (LEVEL 0)
+    System(( "0.0<br/>AgriVision AI<br/>Unified Crop Intelligence<br/>& Precision Platform" ))
+
+    %% INCOMING DATA FLOWS FROM USER
+    User -->|"1. User Credentials<br/>(Google Profile / Email / Phone OTP)"| System
+    User -->|"2. Foliar Crop Image<br/>(File Upload / Camera Stream)"| System
+    User -->|"3. Farm Agronomic Parameters<br/>(Soil NPK, pH, Rainfall, Temp, Crop, Season)"| System
+    User -->|"4. Horizon & Key Configurations<br/>(7/14/30 Days, Gemini API Key)"| System
+
+    %% OUTGOING DATA FLOWS TO USER
+    System -->|"5. Authenticated Profile & Avatar PFP"| User
+    System -->|"6. Disease Diagnosis & Top-3 Candidates"| User
+    System -->|"7. Stress Heatmap & Boundary Overlay URLs"| User
+    System -->|"8. Harvest Yield Forecast (t/ha & Category)"| User
+    System -->|"9. Crop Health Score (0-100) & Status"| User
+    System -->|"10. Composite Farm Risk Level & Breakdown"| User
+    System -->|"11. Actionable Agronomic Recommendations"| User
+    System -->|"12. Recurrent LSTM Multi-Horizon Projections"| User
+    System -->|"13. Formatted Agri-GAN 2.0 Field Dossier"| User
+
+    %% INTERACTIONS WITH FILESYSTEM
+    Filesystem -->|"Pre-Trained Neural Weights (.keras)<br/>Column Transformers (.pkl)<br/>Class Names (class_names.json)"| System
+    System -->|"Persist Uploaded Foliage Photos (/outputs/web_uploads/)<br/>Persist Heatmaps & Overlays (/outputs/spectral/)"| Filesystem
+
+    %% INTERACTIONS WITH EXTERNAL GEMINI API
+    System -->|"Multivariate Sequence Prompt JSON<br/>(Crop, Health, Yield, Nitrogen Sequence)"| GeminiService
+    GeminiService -->|"Recurrent State Predictions JSON<br/>(Cell Velocity, Projections, Anomalies)"| System
+

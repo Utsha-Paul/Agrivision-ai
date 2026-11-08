@@ -1,0 +1,139 @@
+flowchart TB
+    %% =========================================================================
+    %% AGRIVISION AI — SYSTEM ARCHITECTURE DIAGRAM
+    %% =========================================================================
+
+    %% EXTERNAL ACTORS
+    subgraph Layer_Actors ["External Actors & Devices"]
+        Farmer["Farmer / Agronomist<br/>(Web Browser / Mobile Client)"]
+        CameraDevice["Client Camera / File System<br/>(Raw Leaf Photo Ingestion)"]
+    end
+
+    %% PRESENTATION LAYER (SPA)
+    subgraph Layer_Frontend ["Presentation Layer (React 19 Single Page Application)"]
+        LandingView["LandingHero.jsx<br/>(Reference 3 3D Mockup & Hero)"]
+        DashView["DashboardView.jsx<br/>(Reference 2 KPI Cards, Sparklines, GIS Map)"]
+        DiseaseView["DiseaseView.jsx<br/>(Reference 1 Camera Brackets & Scanner)"]
+        YieldView["YieldView.jsx<br/>(17-Feature Harvest Yield Predictor)"]
+        StressView["StressView.jsx<br/>(Hyperspectral Stress & Thermal Heatmap)"]
+        LSTMView["LSTMTrendView.jsx<br/>(Deep Recurrent Multi-Horizon Forecaster)"]
+        GANView["GANReportView.jsx<br/>(Agri-GAN 2.0 Generative Dossier View)"]
+        SettingsView["SettingsView.jsx<br/>(User Profile, PFP/Avatar & Farm Config)"]
+        AuthModalView["AuthModal.jsx<br/>(Google OAuth, Email/Password, Phone OTP)"]
+        AppContext["AppContext.jsx<br/>(Global React State: User, Scans, History, API Key)"]
+    end
+
+    %% API GATEWAY & ROUTING LAYER
+    subgraph Layer_Gateway ["API Gateway & Routing Layer (FastAPI / ASGI)"]
+        UvicornServer["Uvicorn ASGI Server<br/>(Port 8000, Host 127.0.0.1)"]
+        CORSMiddleware["CORSMiddleware<br/>(Cross-Origin Access Control)"]
+        FastAPIRouter["FastAPI APIRouter & Route Endpoints<br/>(api_server.py)"]
+        PydanticValidator["Pydantic Schemas<br/>(Payload Validation & Serialization)"]
+        SPAFallback["Static & SPA Router<br/>(Mount /outputs, /assets, Index Fallback)"]
+    end
+
+    %% BUSINESS LOGIC & ORCHESTRATION LAYER
+    subgraph Layer_BusinessLogic ["Application Business Logic & Orchestration"]
+        AuthController["Authentication Controller<br/>(Google Auth, Email, Phone OTP '7729')"]
+        DiagOrchestrator["Diagnostic Pipeline Orchestrator<br/>(detect_leaf_disease)"]
+        ImageValidator["Image Quality Validator<br/>(validator.py: Resolution & HSV Green Ratio)"]
+        HealthEngine["Crop Health Scoring Engine<br/>(health_score.py: Multi-Factor 0-100 Score)"]
+        RiskEngine["Composite Risk Assessment Engine<br/>(risk_engine.py: 6-Vector Weighted Formula)"]
+        RecEngine["Agronomic Recommendation Engine<br/>(recommendation_engine.py: Priority Action Matrix)"]
+        BaselineForecast["14-Day Forward Forecaster<br/>(forecast.py: Yield & Risk Moving Trend)"]
+    end
+
+    %% AI / ML INFERENCE PIPELINE LAYER
+    subgraph Layer_Inference ["AI / Machine Learning & Inference Pipeline"]
+        DiseaseModel["EfficientNet CNN Disease Model<br/>(disease_efficientnet.keras, 38 Classes)"]
+        YieldMLP["Tabular Yield MLP Neural Network<br/>(crop_yield_mlp.keras + preprocessor.pkl)"]
+        SpectralVisualizer["Optical Stress Visualizer<br/>(visualizer.py: ExG, NDI, Jet Heatmaps & Overlays)"]
+        LSTMEngine["Recurrent LSTM Trend Engine<br/>(lstm_trend_engine.py: Temporal State Velocity)"]
+        GANEngine["Agri-GAN 2.0 Report Synthesizer<br/>(gan_report_engine.py: Generator & Discriminator)"]
+    end
+
+    %% EXTERNAL SERVICES
+    subgraph Layer_ExternalServices ["External APIs & Third-Party Services"]
+        GeminiAPI["Google Gemini API (REST)<br/>(Temporal Sequence Dynamic Acceleration)"]
+    end
+
+    %% STORAGE & PERSISTENCE TIER
+    subgraph Layer_Storage ["Storage & Persistence Tier"]
+        MemoryUsers["In-Memory Store: USERS_DB<br/>(User Records, Avatars, Roles)"]
+        MemoryOTP["In-Memory Store: OTP_STORE<br/>(Temporary Phone Verification Codes)"]
+        LocalStorage["Client Browser LocalStorage<br/>(agrivision_user, agrivision_gemini_key)"]
+        UploadStorage["Filesystem: /outputs/web_uploads/<br/>(Persisted Raw Foliage Photos)"]
+        SpectralStorage["Filesystem: /outputs/spectral/<br/>(Generated Heatmaps & Overlays)"]
+        ModelStorage["Filesystem: /models/<br/>(Keras .keras Models, Scalers .pkl, Labels .json)"]
+    end
+
+    %% INTER-COMPONENT FLOWS
+
+    %% User Interaction Flow
+    Farmer -->|"Interacts with UI / Submits Inputs"| Layer_Frontend
+    CameraDevice -->|"Streams Image Binary / Upload"| DiseaseView
+
+    %% Frontend Internal Wiring
+    AuthModalView -.->|"Dispatches User Credentials"| AppContext
+    LandingView -.->|"Navigates"| AppContext
+    DashView -.->|"Consumes Scans & Metrics"| AppContext
+    DiseaseView -.->|"Dispatches Image Scans"| AppContext
+    SettingsView -.->|"Updates PFP, Location, API Key"| AppContext
+    AppContext <-->|"Syncs Session Data"| LocalStorage
+
+    %% Client-Server HTTP Calls
+    Layer_Frontend ==>|"HTTP REST / JSON & Multipart Forms"| UvicornServer
+    UvicornServer --> CORSMiddleware
+    CORSMiddleware --> FastAPIRouter
+    FastAPIRouter --> PydanticValidator
+    FastAPIRouter --> SPAFallback
+
+    %% Gateway to Controllers
+    FastAPIRouter -->|"/api/auth/*"| AuthController
+    FastAPIRouter -->|"/api/disease/detect"| DiagOrchestrator
+    FastAPIRouter -->|"/api/yield/predict"| YieldMLP
+    FastAPIRouter -->|"/api/lstm/forecast"| LSTMEngine
+    FastAPIRouter -->|"/api/gan/generate-report"| GANEngine
+    SPAFallback -->|"Delivers dist/index.html & Assets"| Layer_Frontend
+
+    %% Auth Controller Operations
+    AuthController <-->|"Read / Write User Profile"| MemoryUsers
+    AuthController <-->|"Verify / Store SMS Code"| MemoryOTP
+
+    %% Diagnostic Pipeline Flow
+    DiagOrchestrator -->|"1. Persist Upload Image"| UploadStorage
+    DiagOrchestrator -->|"2. Verify Image Quality"| ImageValidator
+    ImageValidator -->|"If Valid: Raw File Path"| DiseaseModel
+    ImageValidator -->|"If Valid: Raw File Path"| SpectralVisualizer
+    DiagOrchestrator -->|"3. Ingest Form Parameters"| YieldMLP
+
+    %% Output of Models to Engines
+    DiseaseModel -->|"Disease, Confidence, Crop"| HealthEngine
+    DiseaseModel -->|"Disease Risk Factor"| RiskEngine
+    YieldMLP -->|"Predicted Yield & Category"| HealthEngine
+    YieldMLP -->|"Yield Risk Factor"| RiskEngine
+    SpectralVisualizer -->|"Spectral Stress Score"| HealthEngine
+    SpectralVisualizer -->|"Spectral Stress Score"| RiskEngine
+    SpectralVisualizer -->|"Write Heatmap & Overlay JPEGs"| SpectralStorage
+
+    %% Engine Synthesis
+    HealthEngine -->|"Health Score & Status"| RecEngine
+    HealthEngine -->|"Health Score"| BaselineForecast
+    RiskEngine -->|"Risk Level & Score"| RecEngine
+    RiskEngine -->|"Risk Score"| BaselineForecast
+
+    %% Advanced AI Engines Execution
+    LSTMEngine <-->|"REST HTTPS (Optional Prompt Protocol)"| GeminiAPI
+    LSTMEngine -->|"Projections & Uncertainty Bounds"| FastAPIRouter
+    GANEngine -->|"Latent Timeline & Fidelity Score"| FastAPIRouter
+
+    %% Storage Reads
+    ModelStorage -.->|"Load Trained Weights (.keras)"| DiseaseModel
+    ModelStorage -.->|"Load MLP & Preprocessor"| YieldMLP
+    ModelStorage -.->|"Load Class Names (.json)"| DiseaseModel
+
+    %% Output Response Delivery
+    DiagOrchestrator -->|"Aggregated Diagnostic JSON Payload"| FastAPIRouter
+    SpectralStorage -.->|"Static Image URLs (/outputs/*)"| FastAPIRouter
+    FastAPIRouter ==>|"JSON Response Body / Heatmap URLs"| Layer_Frontend
+

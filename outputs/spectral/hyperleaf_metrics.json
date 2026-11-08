@@ -1,0 +1,39 @@
+{
+    "model": "AgriVision HyperLeaf Spectral Model",
+    "dataset": "HyperLeaf2024",
+    "samples": 1590,
+    "training_samples": 1272,
+    "validation_samples": 318,
+    "spectral_bands": 204,
+    "targets": [
+        "GrainWeight",
+        "Gsw",
+        "PhiPS2"
+    ],
+    "epochs_requested": 100,
+    "epochs_completed": 100,
+    "batch_size": 32,
+    "validation_size": 0.2,
+    "metrics": {
+        "GrainWeight": {
+            "mae": 608.614013671875,
+            "rmse": 809.1281187179197,
+            "r2": 0.84393310546875
+        },
+        "Gsw": {
+            "mae": 0.019138982519507408,
+            "rmse": 0.024235584432148183,
+            "r2": 0.3727720379829407
+        },
+        "PhiPS2": {
+            "mae": 0.04016807675361633,
+            "rmse": 0.05290408553412461,
+            "r2": 0.7540929317474365
+        },
+        "overall": {
+            "mae": 202.8911590576172,
+            "rmse": 467.1503204269478,
+            "r2": 0.6569327116012573
+        }
+    }
+}
